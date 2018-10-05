@@ -1,15 +1,10 @@
 'use strict';
 
-let fs = require ('fs');
+// let fs = require ('fs');
 let https = require ('https');
-const util = require('util');
+// const util = require('util');
+var log = require('fancy-log');
 
-
-// **********************************************
-// *** Update or verify the following values. ***
-// **********************************************
-
-// Replace the subscriptionKey string value with your valid subscription key.
 
 let subscriptionKey = '796d3d6265a64667a2bc1902c4975bbc';
 
@@ -29,12 +24,12 @@ let response_handler = function (response) {
     });
     response.on ('end', function () {
         let json = JSON.stringify(JSON.parse(body), null, 4);
-        console.log(json);
+        log(json);
         resolve (json)
        
     });
     response.on ('error', function (e) {
-        console.log ('Error: ' + e.message);
+        log.error ('Error: ' + e.message);
         reject (e.message)
     });
     
@@ -50,7 +45,7 @@ let get_guid = function () {
 let Translate = function (content) {
 return new Promise(function(resolve, reject) {
     let body = '';
-    console.log (`In translate module`)
+    log (`Translating`)
     let request_params = {
         method : 'POST',
         hostname : host,
@@ -79,7 +74,7 @@ return new Promise(function(resolve, reject) {
         
         });
         response.on ('error', function (e) {
-            console.log ('Error: ' + e.message);
+            log.error ('Error: ' + e.message);
             reject (e.message)
         });
 

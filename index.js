@@ -3,15 +3,25 @@ var Router = require('koa-router')
 const json = require('koa-json')
 const cors = require('@koa/cors');
 const serve = require('koa-better-serve')
-const send = require('koa-send');
-const views = require('koa-views');
+var http = require('http');
+var https = require('https');
+var fs = require('fs');
+var enforceHttps = require('koa-sslify');
+var log = require('fancy-log');
+// const send = require('koa-send');
+// const views = require('koa-views');
 const Handlebars = require('handlebars');
 // const koaBetterBody = require('koa-better-body')
 const koaBody = require('koa-body')
 const translationAPI = require ('./translate.js')
+const Iog = require('iog');
+// var fs = require('fs');
+// var enforceHttps = require('koa-sslify');
+ 
 
 const app = new Koa();
 var router = new Router();
+const logger = new Iog('my-module-name');
 var appData = {
  "translationSource" : " ",
  "translationResults" : " ",
@@ -19,7 +29,8 @@ var appData = {
 }
 
 const config = {
-  "port": 3000 
+  "httpPort": 3010,
+  "httpsPort": 1025 
 }
 
 app
@@ -29,83 +40,41 @@ app
   .use(json())
   .use(cors())
   .use(serve('./public'))
+  .use(enforceHttps());
+  // .use(enforceHttps({
+    // trustProtoHeader: true
+  // }));
   
 
 router.get ('api','/api/:text', async (ctx,next) => { 
-  console.log ("API Call redirecting")
-  // ctx.send('/index.html');
-  // ctx.params.text
   ctx.body = await pageGenerator ();
 
 
 } )
 
   router.get ('translate','/translate/:text', async (ctx,next) => {
-
-    // let text = "Por favor"
+    try {log (`Request received`)
+  
     appData.translationSource = decodeURIComponent((ctx.params.text + '').replace(/\+/g, '%20')); 
     
     let content = JSON.stringify ([{'Text' : appData.translationSource}]);
-    // await translationAPI.Translate(content)
-    // await translationAPICall (content)
-    // console.log ("First call")
     
     let newText =  await translationAPI.Translate(content)
-    // newText.then ((data) => {
-    //   console.log ("Resolved Promise")
-    //   // console.log (data[0].translations[0].text)
-    //   appData.translationResults = data[0].translations[0].text
-    //   console.log ("Response")
-      
-    // })
-    // console.log ('Lower call')
     appData.translationResults = newText[0].translations[0].text
     appData.SourceLanguage=newText[0].detectedLanguage.language
-    console.log (newText[0])
-    // console.log (appData.translationResults);
-    // ctx.body = {
-    //   "Source" : appData.translationSource,
-    //   "Translation": appData.translationResults,
-    //   "Source language":  appData.SourceLanguage}
-    // console.log (Object.values(param));
-
+    // console.log (newText[0])
+    
     ctx.body = await pageGenerator ()
-  
+    log (`Information sent`)
+    }
+    catch (error) {
+      log.error (error)
+    }
   })
 
-router.get('/translate/public/img/(.*)', async ctx => {
-  serve('./public/img')
-  // ctx.body ="Test"
-});  
-
-app.use( async (ctx,next) => {
-  console.log ("Second call")
-  // ctx.res = `Hello`
-  // ctx.res = appData.translationResults;
-  // ctx.body = appData.translationResults;
-  // console.log (ctx.body);
-});
-
-// async function translationAPICall (content) {
-//   return new Promise ( (reject,resolve) => {
-//     try {
-//       console.log ("In translationAPICall")
-//     let newText =  translationAPI.Translate(content)
-//     newText.then ((data) => {
-//       console.log ("Resolved Promise")
-//       // console.log (data[0].translations[0].text)
-//       appData.translationResults = data[0].translations[0].text
-//       console.log ("Response")
-//       resolve ()
-//     })
-//   }
-//   catch (err) {
-//     console.log (err);
-//     reject (err);
-    
-//   }
-//   })
-// }
+// router.get('/translate/public/img/(.*)', async ctx => {
+//   serve('./public/img')
+// });  
 
 async function pageGenerator () {
 
@@ -163,7 +132,6 @@ async function pageGenerator () {
       </html>`;
     var template = Handlebars.compile(source);
  
-    // var data = appData;
     var result = template(appData);
     resolve (result)
     }
@@ -178,4 +146,19 @@ async function pageGenerator () {
 
 }
 
-app.listen(config.port, () => console.log(`TranslationApp listening on port ${config.port}`))
+var options = {
+  key: fs.readFileSync('cert/server.key'),
+  cert: fs.readFileSync('cert/server.crt')
+}
+
+// app.listen(config.port, () => console.log(`TranslationApp listening on port ${config.port}`))
+
+http.createServer(app.callback()).listen(config.httpPort);
+https.createServer(options, app.callback()).listen(config.httpsPort);
+let msgServ = `  Translate application listening on the following ports:
+- HTTP : ${config.httpPort}
+- HTTPS: ${config.httpsPort}`
+
+// logger.write(msgServ);
+log (msgServ)
+
