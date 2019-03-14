@@ -13,7 +13,8 @@ var log = require('fancy-log');
 const Handlebars = require('handlebars');
 // const koaBetterBody = require('koa-better-body')
 const koaBody = require('koa-body')
-const translationAPI = require ('./translate.js')
+// const translationAPI = require ('./translate.js')
+const translationAPI = require ('./v3_translate.js')
 const Iog = require('iog');
 var Base64 = require('js-base64').Base64;
 var b64 = require('base-64');
@@ -22,6 +23,7 @@ var iso88598i = require('iso-8859-8-i');
 // var fs = require('fs');
 // var enforceHttps = require('koa-sslify');
 // var decrypter = require('aes-decrypter').Decrypter;
+const parseJson = require('parse-json');
  
 
 const app = new Koa();
@@ -81,10 +83,10 @@ router.get ('encrypt','/encrypt/', async (ctx,next) => {
     try {
     log (`Request received`)
     // log (`Request params: ${ctx.url}`)
-    log (`Text to Decode:' ${ctx.params.text}`)
+    // log (`Text to Decode:' ${ctx.params.text}`)
     // let content2 = Base64.decode(ctx.params.text);
     let decoded = b64.decode (ctx.params.text);
-    log (`Decoded text: ${decoded}`);
+    // log (`Decoded text: ${decoded}`);
     // let decodedTxt = iso88598i.decode (decoded)
     // log (`UTF8 text: ${decodedTxt}`);
     // log (ctx.params);
@@ -103,10 +105,11 @@ router.get ('encrypt','/encrypt/', async (ctx,next) => {
     // log (`Translated content: ${content2}`)
     // log (`Translated content3: ${content3}`)
     let newText =  await translationAPI.Translate(content)
-    appData.translationResults = newText[0].translations[0].text
-    appData.SourceLanguage=newText[0].detectedLanguage.language
+    let parsedText = JSON.parse (newText[0].translations[0].text)
+    appData.translationResults = parsedText[0].Text
+    // appData.SourceLanguage=newText[0].detectedLanguage.language
     appData.RequestURL= decoded
-    // console.log (newText[0])
+    
     
     ctx.body = await pageGenerator ()
     log (`Information sent`)
