@@ -105,7 +105,14 @@ router.get ('encrypt','/encrypt/', async (ctx,next) => {
     // log (`Translated content: ${content2}`)
     // log (`Translated content3: ${content3}`)
     let newText =  await translationAPI.Translate(content)
+    // log (newText);
+    // log ('***');
+    // log (newText[0].translations[0].text);
+    // log ('***');
+    // log (newText[0].translations[0].text);
     let parsedText = JSON.parse (newText[0].translations[0].text)
+    // log ('Log parsed ***');
+    // log (parsedText);
     appData.translationResults = parsedText[0].Text
     // appData.SourceLanguage=newText[0].detectedLanguage.language
     appData.RequestURL= decoded
@@ -158,7 +165,7 @@ async function pageGenerator () {
               <strong></strong>
             </main><!-- .content -->
           </div>
-      
+          <h5 id="discl"> This is computer generated translation. Please use only as a reference   </h5>
           <aside class="left-sidebar">
             <strong><h3>Source:</h3></strong> {{translationSource}}
           </aside><!-- .left-sidebar -->
@@ -168,7 +175,6 @@ async function pageGenerator () {
       
         </div><!-- .middle-->
         
-        <h5 id="discl"> This is computer generated translation. Please use only as a reference   </h5>
       </div><!-- .wrapper -->
       
       <footer class="footer">
