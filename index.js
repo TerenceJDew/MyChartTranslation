@@ -14,10 +14,12 @@ const Handlebars = require('handlebars');
 // const koaBetterBody = require('koa-better-body')
 const koaBody = require('koa-body')
 // const translationAPI = require ('./translate.js')
-const translationAPI = require ('./v3_translate.js')
+const translationAPI = require ('./v3_translate.js');
+const lang = require ('./langLook.js');
 const Iog = require('iog');
 var Base64 = require('js-base64').Base64;
 var b64 = require('base-64');
+var util = require("util");
 // var utf8 = require('to-utf-8');
 var iso88598i = require('iso-8859-8-i');
 // var fs = require('fs');
@@ -38,7 +40,8 @@ var appData = {
 
 const config = {
   "httpPort": 3010,
-  "httpsPort": 1025 
+  "httpsPort": 1025, 
+  "accessKey": "cEQYUIaFOU41LXFnMSXA6fYEoop7Ztoq"
 }
 
 app
@@ -60,13 +63,56 @@ router.get ('api','/api/:text', async (ctx,next) => {
 
 } )
 
-router.get ('translate','/translate', async (ctx,next) => { 
- log (`/translate endpoint without params`)
- log (`Request Header`)
- log (ctx.request.header)
- ctx.body = "Empty /translate/ endpoint"
+router.get ('v2','/v2/', async (ctx,next) => { 
+  log (`/V2 endpoint without params`)
+  log (`Request received`)
+  log (ctx.query)
+  log (ctx.query.key)
+  log (ctx.query.text)
 
-} )
+
+  if (ctx.query.key == config.accessKey) {
+
+    log (`Access key accepted`)
+    
+    try {
+      log (`Request received`)
+      
+      // let decoded = b64.decode (ctx.query.text);
+      appData.translationSource = ctx.query.text;
+      // let content = JSON.stringify ([{'Text' : decoded}]);
+      let content = ctx.query.text
+      let newText =  await translationAPI.Translate(content)
+      console.log(util.inspect(newText, {showHidden: false, depth: null}));
+      // let parsedText = JSON.parse (newText[0].translations[0].text)
+      // log (newText[0].detectedLanguage)
+      // log (newText[0].detectedLanguage.language)
+      appData.SourceLanguage= await lang.langLook(newText[0].detectedLanguage.language);
+      // log (newText[0].detectedLanguage.score)
+      // log (newText[0].translations)
+      // log (newText[0].translations[0].text)
+      // log (newText[0].translations[0].to)
+      appData.translationResults = newText[0].translations[0].text
+      // appData.RequestURL= decoded
+      
+      
+      ctx.body = await pageGenerator ()
+      log (`Information sent`)
+      }
+
+    catch (error) {
+      log.error (error)
+    }
+
+  }
+  
+  else {
+    log (`Request without access key`)
+    ctx.body = "Access Denied"
+  }
+
+ 
+ } )
 
 
 router.get ('encrypt','/encrypt/', async (ctx,next) => { 
@@ -167,7 +213,7 @@ async function pageGenerator () {
           </div>
           <h5 id="discl"> This is computer generated translation. Please use only as a reference   </h5>
           <aside class="left-sidebar">
-            <strong><h3>Source:</h3></strong> {{translationSource}}
+            <strong><h3>Source text in {{SourceLanguage}}:</h3></strong> {{translationSource}}
           </aside><!-- .left-sidebar -->
       
           <aside class="right-sidebar">
