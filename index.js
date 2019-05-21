@@ -64,11 +64,11 @@ router.get ('api','/api/:text', async (ctx,next) => {
 } )
 
 router.get ('v2','/v2/', async (ctx,next) => { 
-  log (`/V2 endpoint without params`)
+  // log (`/V2 endpoint without params`)
   log (`Request received`)
-  log (ctx.query)
-  log (ctx.query.key)
-  log (ctx.query.text)
+  // log (ctx.query)
+  // log (ctx.query.key)
+  // log (ctx.query.text)
 
 
   if (ctx.query.key == config.accessKey) {
@@ -76,7 +76,7 @@ router.get ('v2','/v2/', async (ctx,next) => {
     log (`Access key accepted`)
     
     try {
-      log (`Request received`)
+      // log (`Request received`)
       
       // let decoded = b64.decode (ctx.query.text);
       appData.translationSource = ctx.query.text;
@@ -115,15 +115,15 @@ router.get ('v2','/v2/', async (ctx,next) => {
  } )
 
 
-router.get ('encrypt','/encrypt/', async (ctx,next) => { 
-  log (`/encrypt endpoint without params`)
-  log (`Request Header`)
-  log (ctx.request.params)
-  log (ctx.request.header)
-  log (ctx.request.query)
-  ctx.body = "Empty /encrypt/ endpoint"
+// router.get ('encrypt','/encrypt/', async (ctx,next) => { 
+//   log (`/encrypt endpoint without params`)
+//   log (`Request Header`)
+//   log (ctx.request.params)
+//   log (ctx.request.header)
+//   log (ctx.request.query)
+//   ctx.body = "Empty /encrypt/ endpoint"
  
- } )
+//  } )
 
   router.get ('translate','/translate/:text', async (ctx,next) => {
     try {
