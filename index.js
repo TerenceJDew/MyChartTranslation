@@ -17,16 +17,16 @@ const koaBody = require('koa-body')
 const translationAPI = require ('./v3_translate.js');
 const lang = require ('./langLook.js');
 const Iog = require('iog');
-var Base64 = require('js-base64').Base64;
-var b64 = require('base-64');
+// var Base64 = require('js-base64').Base64;
+// var b64 = require('base-64');
 var util = require("util");
 // var utf8 = require('to-utf-8');
-var iso88598i = require('iso-8859-8-i');
+// var iso88598i = require('iso-8859-8-i');
 // var fs = require('fs');
 // var enforceHttps = require('koa-sslify');
 // var decrypter = require('aes-decrypter').Decrypter;
-const parseJson = require('parse-json');
-const detectCharacterEncoding = require('detect-character-encoding');
+// const parseJson = require('parse-json');
+// const detectCharacterEncoding = require('detect-character-encoding');
  
 
 const app = new Koa();
@@ -83,7 +83,8 @@ router.get ('v2','/v2/', async (ctx,next) => {
       appData.translationSource = ctx.query.text;
       // let content = JSON.stringify ([{'Text' : decoded}]);
       
-      let content = ctx.query.text
+      
+      let content = decodeURIComponent(ctx.query.text)
 
       // Check content encoding
       // const fileBuffer = Buffer.from(content);
@@ -199,9 +200,7 @@ async function pageGenerator () {
         <!-- <meta charset="utf-8" /> -->
         <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script><![endif]-->
         <title>Yale New Haven Health Auto-Translate</title>
-        <meta name="keywords" content="" />
-        <meta name="description" content="" />
-        <meta charset="utf-8"/>
+        <meta name="keywords" content="" charset="UTF-8"/>
         <link href="../css/style.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">	
         <script>
