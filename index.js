@@ -82,10 +82,17 @@ router.get ('v2','/v2/', async (ctx,next) => {
       // let decoded = b64.decode (ctx.query.text);
       appData.translationSource = ctx.query.text;
       // let content = JSON.stringify ([{'Text' : decoded}]);
+      
       let content = ctx.query.text
-      const fileBuffer = Buffer.from(content);
-      const charsetMatch = detectCharacterEncoding(fileBuffer);
-      log (charsetMatch);
+
+      // Check content encoding
+      // const fileBuffer = Buffer.from(content);
+      // const charsetMatch = detectCharacterEncoding(fileBuffer);
+      // log (charsetMatch);
+
+      // Convert 
+      // let decodedTxt = iso88598i.decode (content)
+      // log (decodedTxt);
     
       let newText =  await translationAPI.Translate(content)
       console.log(util.inspect(newText, {showHidden: false, depth: null}));
@@ -136,7 +143,7 @@ router.get ('v2','/v2/', async (ctx,next) => {
     // log (`Request params: ${ctx.url}`)
     // log (`Text to Decode:' ${ctx.params.text}`)
     // let content2 = Base64.decode(ctx.params.text);
-    let decoded = b64.decode (ctx.params.text);
+    // let decoded = b64.decode (ctx.params.text);
     // log (`Decoded text: ${decoded}`);
     // let decodedTxt = iso88598i.decode (decoded)
     // log (`UTF8 text: ${decodedTxt}`);
@@ -194,6 +201,7 @@ async function pageGenerator () {
         <title>Yale New Haven Health Auto-Translate</title>
         <meta name="keywords" content="" />
         <meta name="description" content="" />
+        <meta charset="utf-8"/>
         <link href="../css/style.css" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">	
         <script>
