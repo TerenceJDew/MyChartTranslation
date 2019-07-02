@@ -252,6 +252,10 @@ var options = {
 }
 
 // app.listen(config.port, () => console.log(`TranslationApp listening on port ${config.port}`))
+log('============Key===========');
+log (key);
+log ('===========Cert==========')
+log (cert);
 
 http.createServer(app.callback()).listen(config.httpPort);
 https.createServer(options, app.callback()).listen(config.httpsPort);
