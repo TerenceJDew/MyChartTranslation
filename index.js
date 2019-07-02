@@ -26,6 +26,7 @@ var iso88598i = require('iso-8859-8-i');
 // var enforceHttps = require('koa-sslify');
 // var decrypter = require('aes-decrypter').Decrypter;
 const parseJson = require('parse-json');
+const detectCharacterEncoding = require('detect-character-encoding');
  
 
 const app = new Koa();
@@ -82,6 +83,10 @@ router.get ('v2','/v2/', async (ctx,next) => {
       appData.translationSource = ctx.query.text;
       // let content = JSON.stringify ([{'Text' : decoded}]);
       let content = ctx.query.text
+      const fileBuffer = Buffer.from(content);
+      const charsetMatch = detectCharacterEncoding(fileBuffer);
+      log (charsetMatch);
+    
       let newText =  await translationAPI.Translate(content)
       console.log(util.inspect(newText, {showHidden: false, depth: null}));
       // let parsedText = JSON.parse (newText[0].translations[0].text)
@@ -252,10 +257,6 @@ var options = {
 }
 
 // app.listen(config.port, () => console.log(`TranslationApp listening on port ${config.port}`))
-log('============Key===========');
-log (options.key);
-log ('===========Cert==========')
-log (options.cert);
 
 http.createServer(app.callback()).listen(config.httpPort);
 https.createServer(options, app.callback()).listen(config.httpsPort);
