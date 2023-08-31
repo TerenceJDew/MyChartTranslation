@@ -77,36 +77,18 @@ router.get ('v2','/v2/', async (ctx,next) => {
     log (`Access key accepted`)
     
     try {
-      // log (`Request received`)
       
-      // let decoded = b64.decode (ctx.query.text);
-      appData.translationSource = ctx.query.text;
-      // let content = JSON.stringify ([{'Text' : decoded}]);
+      appData.translationSource = joinedParagraphs(ctx.query.text);
       
       
       let content = decodeURIComponent(ctx.query.text)
 
-      // Check content encoding
-      // const fileBuffer = Buffer.from(content);
-      // const charsetMatch = detectCharacterEncoding(fileBuffer);
-      // log (charsetMatch);
-
-      // Convert 
-      // let decodedTxt = iso88598i.decode (content)
-      // log (decodedTxt);
-    
       let newText =  await translationAPI.Translate(content)
       console.log(util.inspect(newText, {showHidden: false, depth: null}));
-      // let parsedText = JSON.parse (newText[0].translations[0].text)
-      // log (newText[0].detectedLanguage)
-      // log (newText[0].detectedLanguage.language)
+
       appData.SourceLanguage= await lang.langLook(newText[0].detectedLanguage.language);
-      // log (newText[0].detectedLanguage.score)
-      // log (newText[0].translations)
-      // log (newText[0].translations[0].text)
-      // log (newText[0].translations[0].to)
-      appData.translationResults = newText[0].translations[0].text
-      // appData.RequestURL= decoded
+
+      appData.translationResults = joinedParagraphs(newText[0].translations[0].text)
       
       
       ctx.body = await pageGenerator ()
@@ -128,52 +110,22 @@ router.get ('v2','/v2/', async (ctx,next) => {
  } )
 
 
-// router.get ('encrypt','/encrypt/', async (ctx,next) => { 
-//   log (`/encrypt endpoint without params`)
-//   log (`Request Header`)
-//   log (ctx.request.params)
-//   log (ctx.request.header)
-//   log (ctx.request.query)
-//   ctx.body = "Empty /encrypt/ endpoint"
- 
-//  } )
+
 
   router.get ('translate','/translate/:text', async (ctx,next) => {
     try {
+
     log (`Request received`)
-    // log (`Request params: ${ctx.url}`)
-    // log (`Text to Decode:' ${ctx.params.text}`)
-    // let content2 = Base64.decode(ctx.params.text);
-    // let decoded = b64.decode (ctx.params.text);
-    // log (`Decoded text: ${decoded}`);
-    // let decodedTxt = iso88598i.decode (decoded)
-    // log (`UTF8 text: ${decodedTxt}`);
-    // log (ctx.params);
-    // log (ctx.params.text)
-    // log (`Request Header`)
-    // log (ctx.request.header)
-    
+   
     appData.translationSource = decoded  
-    // appData.translationSource = decodeURIComponent((ctx.params.text + '').replace(/\+/g, '%20')); 
-    
-    // let content = JSON.stringify ([{'Text' : appData.translationSource}]);
+   
     let content = JSON.stringify ([{'Text' : decoded}]);
-    // log (`Content: ${content}`)
-    // let content2 = Base64.decode(content);
-    // let content3 = iso88598i.decode (content2);
-    // log (`Translated content: ${content2}`)
-    // log (`Translated content3: ${content3}`)
+    
     let newText =  await translationAPI.Translate(content)
-    // log (newText);
-    // log ('***');
-    // log (newText[0].translations[0].text);
-    // log ('***');
-    // log (newText[0].translations[0].text);
+    
     let parsedText = JSON.parse (newText[0].translations[0].text)
-    // log ('Log parsed ***');
-    // log (parsedText);
+    
     appData.translationResults = parsedText[0].Text
-    // appData.SourceLanguage=newText[0].detectedLanguage.language
     appData.RequestURL= decoded
     
     
@@ -185,78 +137,101 @@ router.get ('v2','/v2/', async (ctx,next) => {
     }
   })
 
-// router.get('/translate/public/img/(.*)', async ctx => {
-//   serve('./public/img')
-// });  
-
-async function pageGenerator () {
-
-  return new Promise ( (resolve, reject) => {
-
-    try {
-      var source = `<!DOCTYPE html>
-      <html>
-      <head>
-        <!-- <meta charset="utf-8" /> -->
-        <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script><![endif]-->
-        <title>Yale New Haven Health Auto-Translate</title>
-        <meta name="keywords" content="" charset="UTF-8"/>
-        <link href="../css/style.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">	
-        <script>
-        </script>
-      </head>
-      
-      <body>
-      
-      <div class="wrapper">
-      
-        <header class="header">
-          <img id="hl" src="../img/translate.png" height="60%" width=auto>	
-          <strong id="title"> Auto-Translate</strong> 
-        </header><!-- .header-->
-      
-        <div class="middle">
-      
-          <div class="container">
-            <main class="content">
-              <strong></strong>
-            </main><!-- .content -->
-          </div>
-          <h5 id="discl"> This is computer generated translation. Please use only as a reference   </h5>
-          <aside class="left-sidebar">
-            <strong><h3>Source text in {{SourceLanguage}}:</h3></strong> {{translationSource}}
-          </aside><!-- .left-sidebar -->
-      
-          <aside class="right-sidebar">
-            <strong><h3>Translation:</h3></strong> {{translationResults}} </aside><!-- .right-sidebar -->
-      
-        </div><!-- .middle-->
+  function joinedParagraphs(translationResults) {
+    
+    let sentences = translationResults.split(".");
+    log(sentences)
+    let paragraphs = []
+    let currentParagraph = 0
+    sentences.forEach((sentence, index) => {
+      if (index % 4 === 0) {
+        if (index !== 0)
+          currentParagraph++
+        paragraphs[currentParagraph] = [`${sentence}`]
+        log(paragraphs)
+      }
+      else {
+        paragraphs[currentParagraph] = [...paragraphs[currentParagraph], sentence]
+      }
+    });
+    let joinedParagraphs = paragraphs.map(sentenceArr => `${sentenceArr.join(".")}.`)
+    log(joinedParagraphs)
+    return joinedParagraphs;
+  }
+  
+  
+  async function pageGenerator() {
+  
+    return new Promise((resolve, reject) => {
+  
+      try {
+        var source = `<!DOCTYPE html>
+        <html>
+        <head>
+          <!-- <meta charset="utf-8" /> -->
+          <!--[if lt IE 9]><script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script><![endif]-->
+          <title>Yale New Haven Health Auto-Translate</title>
+          <meta name="keywords" content="" />
+          <meta name="description" content="" />
+          <link href="../css/style.css" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css?family=Poppins" rel="stylesheet">	
+          <script>
+          </script>
+        </head>
         
-      </div><!-- .wrapper -->
-      
-      <footer class="footer">
-          <img src="../img/YNHHSLogo.png" height=auto width="20%">
-        </footer> <!-- .footer -->
-      
-      </body>
-      
-      </html>`;
-    var template = Handlebars.compile(source);
- 
-    var result = template(appData);
-    resolve (result)
-    }
-
-    catch (error) {
-      reject (error)
-
-    }
-
-  } )
-
-
-}
+        <body>
+        
+        <div class="wrapper">
+        
+          <header class="header">
+            <img id="hl" src="../img/translate.png" height="60%" width=auto>	
+            <strong id="title"> Auto-Translate</strong> 
+          </header><!-- .header-->
+        
+          <div class="middle">
+             
+            <aside class="left-sidebar">
+              <b><h3>Source:</h3></b>
+              {{#each translationSource}} 
+              <p>{{this}}</p>
+              {{/each}} 
+            </aside><!-- .left-sidebar -->
+        
+            <aside class="right-sidebar">
+              <b><h3>Translation:</h3></b> 
+              {{#each translationResults}} 
+              <p>{{this}}</p>
+              {{/each}}
+              </aside><!-- .right-sidebar -->
+        
+          </div><!-- .middle-->
+          
+          <h5 id="discl"> This is computer generated translation. Please use only as a reference   </h5>
+        </div><!-- .wrapper -->
+        
+        <footer class="footer">
+            <img src="../img/YNHHSLogo.png" height=auto width="20%">
+          </footer> <!-- .footer -->
+        
+        </body>
+        
+        </html>`;
+  
+        var template = Handlebars.compile(source);
+  
+        var result = template(appData);
+        resolve(result)
+      }
+  
+      catch (error) {
+        reject(error)
+  
+      }
+  
+    })
+  
+  
+  }
 
 var options = {
   key: fs.readFileSync('cert/server.key'),
